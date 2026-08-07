@@ -44,6 +44,10 @@ class Invoice
     #[ORM\OneToMany(targetEntity: InvoiceLineItem::class, mappedBy: 'invoice', orphanRemoval: true)]
     private Collection $invoiceLineItems;
 
+    #[ORM\OneToOne(inversedBy: 'invoice', cascade: ['persist'])]
+    #[ORM\JoinColumn(nullable: false)]
+    private ?InvoiceDocument $document = null;
+
     public function __construct()
     {
         $this->invoiceLineItems = new ArrayCollection();
@@ -164,6 +168,18 @@ class Invoice
                 $invoiceLineItem->setInvoice(null);
             }
         }
+
+        return $this;
+    }
+
+    public function getDocument(): ?InvoiceDocument
+    {
+        return $this->document;
+    }
+
+    public function setDocument(InvoiceDocument $document): static
+    {
+        $this->document = $document;
 
         return $this;
     }
