@@ -10,11 +10,17 @@ use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
+use App\Entity\InvoiceDocument;
+use Doctrine\ORM\EntityManagerInterface;
+use Psr\Log\LoggerInterface;
+use Symfony\Component\HttpFoundation\File\UploadedFile;
 
 final class InvoiceDocumentController extends AbstractController
 {
     public function __construct(
-        private readonly InvoiceDocumentStorage $invoiceDocumentStorage,
+        private readonly InvoiceDocumentStorage $documentStorage,
+        private readonly EntityManagerInterface $entityManager,
+        private readonly LoggerInterface $logger,
     ) {
     }
 
@@ -26,11 +32,48 @@ final class InvoiceDocumentController extends AbstractController
         $form->handleRequest($request);
 
         if ($form->isSubmitted() && $form->isValid()) {
+            /** @var UploadedFile $uploadedFile */
             $uploadedFile = $form->get('document')->getData();
 
-            $storagePath = $this->invoiceDocumentStorage->store($uploadedFile);
+            $originalFilename = $uploadedFile->getClientOriginalName();
+            $mimeType = $uploadedFile->getMimeType();
 
-            dd($storagePath);
+            if ($mimeType === null) {
+                throw new \RuntimeException('Could not determine the uploaded file MIME type.');
+            }
+
+            $storagePath = $this->documentStorage->store($uploadedFile);
+
+            try {
+                $document = new InvoiceDocument();
+                $document->setOriginalFilename($originalFilename);
+                $document->setMimeType($mimeType);
+                $document->setStoragePath($storagePath);
+
+                $this->entityManager->persist($document);
+                $this->entityManager->flush();
+            } catch (\Throwable $exception) {
+                try {
+                    $this->documentStorage->delete($storagePath);
+                } catch (\Throwable $cleanupException) {
+                    $this->logger->error(
+                        'Failed to delete invoice document after database persistence failure.',
+                        [
+                            'storagePath' => $storagePath,
+                            'exception' => $cleanupException,
+                        ],
+                    );
+                }
+
+                throw $exception;
+            }
+
+            $this->addFlash(
+                'success',
+                'Invoice document uploaded successfully.',
+            );
+
+            return $this->redirectToRoute('invoice_document_upload');
         }
 
         return $this->render('invoice_document/upload.html.twig', [

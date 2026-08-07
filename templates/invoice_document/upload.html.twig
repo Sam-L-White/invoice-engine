@@ -5,6 +5,12 @@
 {% block body %}
     <h1>Upload invoice</h1>
 
+    {% for message in app.flashes('success') %}
+        <div>
+            {{ message }}
+        </div>
+    {% endfor %}
+
     {{ form_start(form) }}
         {{ form_row(form.document) }}
 
