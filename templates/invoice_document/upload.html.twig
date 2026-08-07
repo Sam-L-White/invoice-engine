@@ -1,0 +1,13 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Upload invoice{% endblock %}
+
+{% block body %}
+    <h1>Upload invoice</h1>
+
+    {{ form_start(form) }}
+        {{ form_row(form.document) }}
+
+        <button type="submit">Upload</button>
+    {{ form_end(form) }}
+{% endblock %}
