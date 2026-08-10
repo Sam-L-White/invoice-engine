@@ -14,10 +14,11 @@ final class InvoiceDocumentControllerTest extends WebTestCase
 {
     public static function supportedDocumentProvider(): iterable
     {
-        yield 'PDF' => ['sample.pdf', 'application/pdf'];
-        yield 'JPEG' => ['sample.jpg', 'image/jpeg'];
-        yield 'PNG' => ['sample.png', 'image/png'];
+        yield 'PDF' => ['sample.pdf', 'application/pdf', 'pdf'];
+        yield 'JPEG' => ['sample.jpg', 'image/jpeg', 'jpg'];
+        yield 'PNG' => ['sample.png', 'image/png', 'png'];
     }
+
     public function testUploadPageLoads(): void
     {
         $client = static::createClient();
@@ -34,6 +35,7 @@ final class InvoiceDocumentControllerTest extends WebTestCase
     public function testValidDocumentUploadRedirectsSuccessfully(
         string $filename,
         string $_expectedMimeType,
+        string $_expectedExtension,
     ): void {
         $client = static::createClient();
 
@@ -54,6 +56,7 @@ final class InvoiceDocumentControllerTest extends WebTestCase
     public function testValidDocumentUploadPersistsInvoiceDocument(
         string $filename,
         string $expectedMimeType,
+        string $expectedExtension,
     ): void {
         $client = static::createClient();
 
@@ -82,12 +85,17 @@ final class InvoiceDocumentControllerTest extends WebTestCase
             'invoice-documents/',
             $document->getStoragePath(),
         );
+        self::assertStringEndsWith(
+            '.'.$expectedExtension,
+            $document->getStoragePath(),
+        );
     }
 
     #[DataProvider('supportedDocumentProvider')]
     public function testValidDocumentUploadStoresFile(
         string $filename,
         string $_expectedMimeType,
+        string $_expectedExtension,
     ): void {
         $client = static::createClient();
 
