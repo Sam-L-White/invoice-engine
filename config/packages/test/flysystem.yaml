@@ -1,0 +1,4 @@
+flysystem:
+    storages:
+        private.storage:
+            memory: ~

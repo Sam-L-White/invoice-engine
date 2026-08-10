@@ -37,4 +37,9 @@ final class InvoiceDocumentStorage
 
         return $path;
     }
+
+    public function delete(string $path): void
+    {
+        $this->storage->delete($path);
+    }
 }
