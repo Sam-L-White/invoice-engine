@@ -8,9 +8,16 @@ use Symfony\Bundle\FrameworkBundle\Test\WebTestCase;
 use App\Entity\InvoiceDocument;
 use Doctrine\ORM\EntityManagerInterface;
 use League\Flysystem\FilesystemOperator;
+use PHPUnit\Framework\Attributes\DataProvider;
 
 final class InvoiceDocumentControllerTest extends WebTestCase
 {
+    public static function supportedDocumentProvider(): iterable
+    {
+        yield 'PDF' => ['sample.pdf', 'application/pdf'];
+        yield 'JPEG' => ['sample.jpg', 'image/jpeg'];
+        yield 'PNG' => ['sample.png', 'image/png'];
+    }
     public function testUploadPageLoads(): void
     {
         $client = static::createClient();
@@ -23,8 +30,11 @@ final class InvoiceDocumentControllerTest extends WebTestCase
         self::assertSelectorExists('input[type="file"]');
     }
 
-    public function testValidPdfUploadRedirectsSuccessfully(): void
-    {
+    #[DataProvider('supportedDocumentProvider')]
+    public function testValidDocumentUploadRedirectsSuccessfully(
+        string $filename,
+        string $_expectedMimeType,
+    ): void {
         $client = static::createClient();
 
         $crawler = $client->request('GET', '/invoice-documents/upload');
@@ -32,7 +42,7 @@ final class InvoiceDocumentControllerTest extends WebTestCase
         $form = $crawler->selectButton('Upload')->form();
 
         $form['invoice_document_upload[document]']->upload(
-            dirname(__DIR__).'/Resources/sample.pdf',
+            dirname(__DIR__).'/Resources/'.$filename,
         );
 
         $client->submit($form);
@@ -40,8 +50,11 @@ final class InvoiceDocumentControllerTest extends WebTestCase
         self::assertResponseRedirects('/invoice-documents/upload');
     }
 
-    public function testValidPdfUploadPersistsInvoiceDocument(): void
-    {
+    #[DataProvider('supportedDocumentProvider')]
+    public function testValidDocumentUploadPersistsInvoiceDocument(
+        string $filename,
+        string $expectedMimeType,
+    ): void {
         $client = static::createClient();
 
         $crawler = $client->request('GET', '/invoice-documents/upload');
@@ -49,7 +62,7 @@ final class InvoiceDocumentControllerTest extends WebTestCase
         $form = $crawler->selectButton('Upload')->form();
 
         $form['invoice_document_upload[document]']->upload(
-            dirname(__DIR__).'/Resources/sample.pdf',
+            dirname(__DIR__).'/Resources/'.$filename,
         );
 
         $client->submit($form);
@@ -59,20 +72,23 @@ final class InvoiceDocumentControllerTest extends WebTestCase
         $document = $entityManager
             ->getRepository(InvoiceDocument::class)
             ->findOneBy([
-                'originalFilename' => 'sample.pdf',
+                'originalFilename' => $filename,
             ]);
 
         self::assertNotNull($document);
-        self::assertSame('sample.pdf', $document->getOriginalFilename());
-        self::assertSame('application/pdf', $document->getMimeType());
+        self::assertSame($filename, $document->getOriginalFilename());
+        self::assertSame($expectedMimeType, $document->getMimeType());
         self::assertStringStartsWith(
             'invoice-documents/',
             $document->getStoragePath(),
         );
     }
 
-    public function testValidPdfUploadStoresFile(): void
-    {
+    #[DataProvider('supportedDocumentProvider')]
+    public function testValidDocumentUploadStoresFile(
+        string $filename,
+        string $_expectedMimeType,
+    ): void {
         $client = static::createClient();
 
         $crawler = $client->request('GET', '/invoice-documents/upload');
@@ -80,7 +96,7 @@ final class InvoiceDocumentControllerTest extends WebTestCase
         $form = $crawler->selectButton('Upload')->form();
 
         $form['invoice_document_upload[document]']->upload(
-            dirname(__DIR__).'/Resources/sample.pdf',
+            dirname(__DIR__).'/Resources/'.$filename,
         );
 
         $client->submit($form);
@@ -90,7 +106,7 @@ final class InvoiceDocumentControllerTest extends WebTestCase
         $document = $entityManager
             ->getRepository(InvoiceDocument::class)
             ->findOneBy([
-                'originalFilename' => 'sample.pdf',
+                'originalFilename' => $filename,
             ]);
 
         self::assertNotNull($document);

@@ -25,10 +25,10 @@ final class InvoiceDocumentUploadType extends AbstractType
                     ),
                     new File(
                         maxSize: '10M',
-                        extensions: ['pdf'],
                         filenameMaxLength: 255,
-                        extensionsMessage: 'Please upload a valid PDF document.',
                         filenameTooLongMessage: 'The filename must be 255 characters or less.',
+                        extensions: ['pdf', 'jpg', 'jpeg', 'png'],
+                        extensionsMessage: 'Please upload a valid PDF, JPEG or PNG document.',
                     ),
                 ],
             ]);
