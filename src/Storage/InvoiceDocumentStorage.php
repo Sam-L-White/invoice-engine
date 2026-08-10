@@ -16,11 +16,20 @@ final class InvoiceDocumentStorage
     ) {
     }
 
-    public function store(uploadedFile $file): string
+    public function store(UploadedFile $file): string
     {
+        $extension = $file->guessExtension();
+
+        if ($extension === null) {
+            throw new \RuntimeException(
+                'Could not determine uploaded file extension.',
+            );
+        }
+
         $path = sprintf(
-            'invoice-documents/%s.pdf',
+            'invoice-documents/%s.%s',
             bin2hex(random_bytes(16)),
+            $extension,
         );
 
         $stream = fopen($file->getPathname(), 'rb');
