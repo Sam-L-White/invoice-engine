@@ -126,4 +126,30 @@ final class InvoiceDocumentControllerTest extends WebTestCase
             $storage->fileExists($document->getStoragePath()),
         );
     }
+
+    public function testUploadedDocumentHasUploadedAt(): void
+    {
+        $client = static::createClient();
+
+        $crawler = $client->request('GET', '/invoice-documents/upload');
+
+        $form = $crawler->selectButton('Upload')->form();
+
+        $form['invoice_document_upload[document]']->upload(
+            dirname(__DIR__).'/Resources/sample.pdf',
+        );
+
+        $client->submit($form);
+
+        $entityManager = static::getContainer()->get(EntityManagerInterface::class);
+
+        $document = $entityManager
+            ->getRepository(InvoiceDocument::class)
+            ->findOneBy([
+                'originalFilename' => 'sample.pdf',
+            ]);
+
+        self::assertNotNull($document);
+        self::assertNotNull($document->getUploadedAt());
+    }
 }

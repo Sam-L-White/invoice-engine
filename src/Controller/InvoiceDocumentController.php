@@ -14,6 +14,7 @@ use App\Entity\InvoiceDocument;
 use Doctrine\ORM\EntityManagerInterface;
 use Psr\Log\LoggerInterface;
 use Symfony\Component\HttpFoundation\File\UploadedFile;
+use Symfony\Component\Clock\ClockInterface;
 
 final class InvoiceDocumentController extends AbstractController
 {
@@ -21,6 +22,7 @@ final class InvoiceDocumentController extends AbstractController
         private readonly InvoiceDocumentStorage $documentStorage,
         private readonly EntityManagerInterface $entityManager,
         private readonly LoggerInterface $logger,
+        private readonly ClockInterface $clock,
     ) {
     }
 
@@ -49,6 +51,7 @@ final class InvoiceDocumentController extends AbstractController
                 $document->setOriginalFilename($originalFilename);
                 $document->setMimeType($mimeType);
                 $document->setStoragePath($storagePath);
+                $document->setUploadedAt($this->clock->now());
 
                 $this->entityManager->persist($document);
                 $this->entityManager->flush();

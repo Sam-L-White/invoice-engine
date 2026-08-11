@@ -25,6 +25,9 @@ class InvoiceDocument
     #[ORM\OneToOne(mappedBy: 'document', cascade: ['persist'])]
     private ?Invoice $invoice = null;
 
+    #[ORM\Column]
+    private ?\DateTimeImmutable $uploadedAt = null;
+
     public function getId(): ?int
     {
         return $this->id;
@@ -78,6 +81,18 @@ class InvoiceDocument
         }
 
         $this->invoice = $invoice;
+
+        return $this;
+    }
+
+    public function getUploadedAt(): ?\DateTimeImmutable
+    {
+        return $this->uploadedAt;
+    }
+
+    public function setUploadedAt(\DateTimeImmutable $uploadedAt): static
+    {
+        $this->uploadedAt = $uploadedAt;
 
         return $this;
     }
