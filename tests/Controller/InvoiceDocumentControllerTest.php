@@ -126,4 +126,74 @@ final class InvoiceDocumentControllerTest extends WebTestCase
             $storage->fileExists($document->getStoragePath()),
         );
     }
+
+    public function testUnsupportedDocumentUploadIsRejected(): void
+    {
+        $client = static::createClient();
+
+        $crawler = $client->request('GET', '/invoice-documents/upload');
+
+        $form = $crawler->selectButton('Upload')->form();
+
+        $form['invoice_document_upload[document]']->upload(
+            dirname(__DIR__).'/Resources/sample.txt',
+        );
+
+        $client->submit($form);
+
+        self::assertResponseIsUnprocessable();
+        self::assertSelectorTextContains(
+            'form',
+            'Please upload a valid PDF, JPEG or PNG document.',
+        );
+    }
+
+    public function testUnsupportedDocumentUploadDoesNotPersistInvoiceDocument(): void
+    {
+        $client = static::createClient();
+
+        $crawler = $client->request('GET', '/invoice-documents/upload');
+
+        $form = $crawler->selectButton('Upload')->form();
+
+        $form['invoice_document_upload[document]']->upload(
+            dirname(__DIR__).'/Resources/sample.txt',
+        );
+
+        $client->submit($form);
+
+        $entityManager = static::getContainer()->get(EntityManagerInterface::class);
+
+        $document = $entityManager
+            ->getRepository(InvoiceDocument::class)
+            ->findOneBy([
+                'originalFilename' => 'sample.txt',
+            ]);
+
+        self::assertNull($document);
+    }
+
+    public function testUnsupportedDocumentUploadDoesNotStoreFile(): void
+    {
+        $client = static::createClient();
+
+        /** @var FilesystemOperator $storage */
+        $storage = static::getContainer()->get('private.storage');
+
+        $before = $storage->listContents('', true)->toArray();
+
+        $crawler = $client->request('GET', '/invoice-documents/upload');
+
+        $form = $crawler->selectButton('Upload')->form();
+
+        $form['invoice_document_upload[document]']->upload(
+            dirname(__DIR__).'/Resources/sample.txt',
+        );
+
+        $client->submit($form);
+
+        $after = $storage->listContents('', true)->toArray();
+
+        self::assertSame($before, $after);
+    }
 }
