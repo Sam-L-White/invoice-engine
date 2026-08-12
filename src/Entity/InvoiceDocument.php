@@ -2,6 +2,7 @@
 
 namespace App\Entity;
 
+use App\Enum\InvoiceDocumentState;
 use App\Repository\InvoiceDocumentRepository;
 use Doctrine\ORM\Mapping as ORM;
 
@@ -27,6 +28,9 @@ class InvoiceDocument
 
     #[ORM\Column]
     private ?\DateTimeImmutable $uploadedAt = null;
+
+    #[ORM\Column(enumType: InvoiceDocumentState::class)]
+    private ?InvoiceDocumentState $state = InvoiceDocumentState::Uploaded;
 
     public function getId(): ?int
     {
@@ -93,6 +97,18 @@ class InvoiceDocument
     public function setUploadedAt(\DateTimeImmutable $uploadedAt): static
     {
         $this->uploadedAt = $uploadedAt;
+
+        return $this;
+    }
+
+    public function getState(): InvoiceDocumentState
+    {
+        return $this->state;
+    }
+
+    public function setState(InvoiceDocumentState $state): static
+    {
+        $this->state = $state;
 
         return $this;
     }
