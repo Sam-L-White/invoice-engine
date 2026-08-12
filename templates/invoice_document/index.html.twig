@@ -17,6 +17,7 @@
                 <th>Filename</th>
                 <th>Type</th>
                 <th>Uploaded</th>
+                <th>State</th>
             </tr>
         </thead>
 
@@ -26,6 +27,7 @@
                     <td>{{ document.originalFilename }}</td>
                     <td>{{ document.mimeType }}</td>
                     <td>{{ document.uploadedAt|date('Y-m-d H:i:s') }}</td>
+                    <td>{{ document.state.label }}</td>
                 </tr>
             {% else %}
                 <tr>
