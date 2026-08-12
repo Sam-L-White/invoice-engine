@@ -97,4 +97,12 @@ final class InvoiceDocumentController extends AbstractController
             'form' => $form,
         ]);
     }
+
+    #[Route('/invoice-documents/{id}', name: 'invoice_document_show')]
+    public function show(InvoiceDocument $document): Response
+    {
+        return $this->render('invoice_document/show.html.twig', [
+            'document' => $document,
+        ]);
+    }
 }
