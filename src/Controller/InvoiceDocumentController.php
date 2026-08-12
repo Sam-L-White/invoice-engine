@@ -90,7 +90,7 @@ final class InvoiceDocumentController extends AbstractController
                 'Invoice document uploaded successfully.',
             );
 
-            return $this->redirectToRoute('invoice_document_upload');
+            return $this->redirectToRoute('invoice_document_index');
         }
 
         return $this->render('invoice_document/upload.html.twig', [
