@@ -80,7 +80,7 @@ final class InvoiceDocumentControllerTest extends WebTestCase
     }
 
     #[DataProvider('supportedDocumentProvider')]
-    public function testValidDocumentUploadRedirectsSuccessfully(
+    public function testValidDocumentUploadRedirectsToInboxAndDisplaysDocument(
         string $filename,
         string $_expectedMimeType,
         string $_expectedExtension,
@@ -97,7 +97,18 @@ final class InvoiceDocumentControllerTest extends WebTestCase
 
         $client->submit($form);
 
-        self::assertResponseRedirects('/invoice-documents/upload');
+        self::assertResponseRedirects('/invoice-documents');
+
+        $client->followRedirect();
+
+        self::assertResponseIsSuccessful();
+
+        self::assertSelectorTextContains('body', $filename);
+
+        self::assertSelectorTextContains(
+            'body',
+            'Invoice document uploaded successfully.',
+        );
     }
 
     #[DataProvider('supportedDocumentProvider')]
