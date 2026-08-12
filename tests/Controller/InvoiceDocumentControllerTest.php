@@ -31,6 +31,54 @@ final class InvoiceDocumentControllerTest extends WebTestCase
         self::assertSelectorExists('input[type="file"]');
     }
 
+    public function testIndexPageLoads(): void
+    {
+        $client = static::createClient();
+
+        $client->request('GET', '/invoice-documents');
+
+        self::assertResponseIsSuccessful();
+        self::assertRouteSame('invoice_document_index');
+        self::assertSelectorTextContains('h1', 'Invoice Documents');
+    }
+
+    public function testInvoiceDocumentIndexDisplaysDocumentsNewestFirst(): void
+    {
+        $client = static::createClient();
+
+        $entityManager = static::getContainer()->get(EntityManagerInterface::class);
+
+        $olderDocument = new InvoiceDocument();
+        $olderDocument->setOriginalFilename('older.pdf');
+        $olderDocument->setMimeType('application/pdf');
+        $olderDocument->setStoragePath('invoice-documents/older.pdf');
+        $olderDocument->setUploadedAt(
+            new \DateTimeImmutable('2026-08-10 10:00:00'),
+        );
+
+        $newerDocument = new InvoiceDocument();
+        $newerDocument->setOriginalFilename('newer.pdf');
+        $newerDocument->setMimeType('application/pdf');
+        $newerDocument->setStoragePath('invoice-documents/newer.pdf');
+        $newerDocument->setUploadedAt(
+            new \DateTimeImmutable('2026-08-11 10:00:00'),
+        );
+
+        $entityManager->persist($olderDocument);
+        $entityManager->persist($newerDocument);
+        $entityManager->flush();
+
+        $crawler = $client->request('GET', '/invoice-documents');
+
+        self::assertResponseIsSuccessful();
+
+        $rows = $crawler->filter('tbody tr');
+
+        self::assertCount(2, $rows);
+        self::assertStringContainsString('newer.pdf', $rows->eq(0)->text());
+        self::assertStringContainsString('older.pdf', $rows->eq(1)->text());
+    }
+
     #[DataProvider('supportedDocumentProvider')]
     public function testValidDocumentUploadRedirectsSuccessfully(
         string $filename,

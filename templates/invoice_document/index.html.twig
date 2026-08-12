@@ -1,0 +1,31 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Invoice Documents{% endblock %}
+
+{% block body %}
+    <h1>Invoice Documents</h1>
+
+    <table>
+        <thead>
+            <tr>
+                <th>Filename</th>
+                <th>Type</th>
+                <th>Uploaded</th>
+            </tr>
+        </thead>
+
+        <tbody>
+            {% for document in documents %}
+                <tr>
+                    <td>{{ document.originalFilename }}</td>
+                    <td>{{ document.mimeType }}</td>
+                    <td>{{ document.uploadedAt|date('Y-m-d H:i:s') }}</td>
+                </tr>
+            {% else %}
+                <tr>
+                    <td colspan="3">No invoice documents have been uploaded yet.</td>
+                </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+{% endblock %}
