@@ -15,6 +15,7 @@ use Doctrine\ORM\EntityManagerInterface;
 use Psr\Log\LoggerInterface;
 use Symfony\Component\HttpFoundation\File\UploadedFile;
 use Symfony\Component\Clock\ClockInterface;
+use App\Repository\InvoiceDocumentRepository;
 
 final class InvoiceDocumentController extends AbstractController
 {
@@ -24,6 +25,19 @@ final class InvoiceDocumentController extends AbstractController
         private readonly LoggerInterface $logger,
         private readonly ClockInterface $clock,
     ) {
+    }
+
+    #[Route('/invoice-documents', name: 'invoice_document_index')]
+    public function index(InvoiceDocumentRepository $repository): Response
+    {
+        $documents = $repository->findBy(
+            [],
+            ['uploadedAt' => 'DESC'],
+        );
+
+        return $this->render('invoice_document/index.html.twig', [
+            'documents' => $documents,
+        ]);
     }
 
     #[Route('/invoice-documents/upload', name: 'invoice_document_upload')]
