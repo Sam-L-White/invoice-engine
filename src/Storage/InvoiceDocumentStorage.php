@@ -51,4 +51,12 @@ final class InvoiceDocumentStorage
     {
         $this->storage->delete($path);
     }
+
+    /**
+     * @return resource
+     */
+    public function readStream(string $path)
+    {
+        return $this->storage->readStream($path);
+    }
 }
