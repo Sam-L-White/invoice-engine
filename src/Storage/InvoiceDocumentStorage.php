@@ -59,4 +59,9 @@ final class InvoiceDocumentStorage
     {
         return $this->storage->readStream($path);
     }
+
+    public function exists(string $path): bool
+    {
+        return $this->storage->fileExists($path);
+    }
 }
