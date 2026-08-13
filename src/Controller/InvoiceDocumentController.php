@@ -111,9 +111,15 @@ final class InvoiceDocumentController extends AbstractController
     #[Route('/invoice-documents/{id}/source', name: 'invoice_document_source')]
     public function source(InvoiceDocument $document): StreamedResponse
     {
-        $stream = $this->documentStorage->readStream(
-            $document->getStoragePath(),
-        );
+        $path = $document->getStoragePath();
+
+        if (!$this->documentStorage->exists($path)) {
+            throw $this->createNotFoundException(
+                'The source document could not be found.',
+            );
+        }
+
+        $stream = $this->documentStorage->readStream($path);
 
         $response = new StreamedResponse(
             function () use ($stream): void {

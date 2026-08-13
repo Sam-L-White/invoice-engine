@@ -281,4 +281,27 @@ final class InvoiceDocumentControllerTest extends WebTestCase
         self::assertNotNull($document);
         self::assertNotNull($document->getUploadedAt());
     }
+
+    public function testMissingDocumentSourceReturnsNotFound(): void
+    {
+        $client = static::createClient();
+
+        $entityManager = static::getContainer()->get(EntityManagerInterface::class);
+
+        $document = new InvoiceDocument();
+        $document->setOriginalFilename('missing.pdf');
+        $document->setMimeType('application/pdf');
+        $document->setStoragePath('invoice-documents/missing.pdf');
+        $document->setUploadedAt(new \DateTimeImmutable());
+
+        $entityManager->persist($document);
+        $entityManager->flush();
+
+        $client->request(
+            'GET',
+            '/invoice-documents/'.$document->getId().'/source',
+        );
+
+        self::assertResponseStatusCodeSame(404);
+    }
 }
