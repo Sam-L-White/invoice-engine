@@ -18,6 +18,7 @@
                 <th>Type</th>
                 <th>Uploaded</th>
                 <th>State</th>
+                <th>Actions</th>
             </tr>
         </thead>
 
@@ -28,6 +29,11 @@
                     <td>{{ document.mimeType }}</td>
                     <td>{{ document.uploadedAt|date('Y-m-d H:i:s') }}</td>
                     <td>{{ document.state.label }}</td>
+                    <td>
+                        <a href="{{ path('invoice_document_show', { id: document.id }) }}">
+                            View
+                        </a>
+                    </td>
                 </tr>
             {% else %}
                 <tr>

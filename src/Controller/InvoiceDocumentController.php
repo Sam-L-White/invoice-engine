@@ -16,6 +16,8 @@ use Psr\Log\LoggerInterface;
 use Symfony\Component\HttpFoundation\File\UploadedFile;
 use Symfony\Component\Clock\ClockInterface;
 use App\Repository\InvoiceDocumentRepository;
+use Symfony\Component\HttpFoundation\HeaderUtils;
+use Symfony\Component\HttpFoundation\StreamedResponse;
 
 final class InvoiceDocumentController extends AbstractController
 {
@@ -96,5 +98,46 @@ final class InvoiceDocumentController extends AbstractController
         return $this->render('invoice_document/upload.html.twig', [
             'form' => $form,
         ]);
+    }
+
+    #[Route('/invoice-documents/{id}', name: 'invoice_document_show')]
+    public function show(InvoiceDocument $document): Response
+    {
+        return $this->render('invoice_document/show.html.twig', [
+            'document' => $document,
+        ]);
+    }
+
+    #[Route('/invoice-documents/{id}/source', name: 'invoice_document_source')]
+    public function source(InvoiceDocument $document): StreamedResponse
+    {
+        $stream = $this->documentStorage->readStream(
+            $document->getStoragePath(),
+        );
+
+        $response = new StreamedResponse(
+            function () use ($stream): void {
+                try {
+                    fpassthru($stream);
+                } finally {
+                    fclose($stream);
+                }
+            },
+        );
+
+        $response->headers->set(
+            'Content-Type',
+            $document->getMimeType(),
+        );
+
+        $response->headers->set(
+            'Content-Disposition',
+            HeaderUtils::makeDisposition(
+                HeaderUtils::DISPOSITION_INLINE,
+                $document->getOriginalFilename(),
+            ),
+        );
+
+        return $response;
     }
 }
